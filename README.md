@@ -16,7 +16,7 @@ The app runs fully in the browser and stores all data in
 
 **localStorage** (no backend, no database, no internet needed).
 
-  
+[View Demo](https://tokhy1.github.io/Student-Leaderboard-System/)  
 
 ------------------------------------------------------------------------
 
