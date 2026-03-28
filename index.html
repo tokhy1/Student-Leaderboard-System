@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ClassBoard — Student Leaderboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">CB</div>
+      <span class="brand-name">ClassBoard</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="leaderboard" onclick="switchView('leaderboard', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Leaderboard</span>
+      </button>
+      <button class="nav-item" data-view="history" onclick="switchView('history', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>History</span>
+      </button>
+      <button class="nav-item" data-view="monthly" onclick="switchView('monthly', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Monthly</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-classes">
+      <div class="classes-header">
+        <span>Classes</span>
+        <button class="icon-btn" onclick="openModal('modal-addClass')" title="New class">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div id="classesList"></div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+          <span></span><span></span><span></span>
+        </button>
+        <div>
+          <h1 class="page-title" id="pageTitle">Leaderboard</h1>
+          <p class="page-sub" id="pageSub">Loading...</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="toggleDark()" id="darkToggle" title="Toggle dark mode">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="btn btn-primary" onclick="openAddStudentModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Student
+        </button>
+      </div>
+    </header>
+
+    <!-- VIEWS -->
+    <div class="content">
+
+      <!-- LEADERBOARD VIEW -->
+      <div class="view active" id="view-leaderboard">
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="section-bar">
+          <div class="filter-tabs">
+            <button class="filter-tab active" id="tab-all" onclick="setFilter('all', this)">All Time</button>
+            <button class="filter-tab" id="tab-month" onclick="setFilter('month', this)">This Month</button>
+          </div>
+          <button class="btn btn-accent" onclick="openModal('modal-givePoints')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Give Points
+          </button>
+        </div>
+
+        <div id="leaderboardContainer"></div>
+      </div>
+
+      <!-- HISTORY VIEW -->
+      <div class="view" id="view-history">
+        <div class="history-filters">
+          <input type="text" id="historySearch" placeholder="Search by name or reason..." oninput="renderHistory()" class="search-input" />
+        </div>
+        <div id="historyContainer"></div>
+      </div>
+
+      <!-- MONTHLY VIEW -->
+      <div class="view" id="view-monthly">
+        <div id="monthlyContainer"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL: ADD CLASS -->
+  <div class="modal-overlay" id="modal-addClass" onclick="overlayClose(event, 'modal-addClass')">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>New Class</h2>
+        <button class="icon-btn" onclick="closeModal('modal-addClass')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <label>Class Name</label>
+        <input id="newClassName" type="text" placeholder="e.g. Python Basics, Web Dev Bootcamp" />
+      </div>
+      <div class="form-group">
+        <label>Description <span class="optional">(optional)</span></label>
+        <input id="newClassDesc" type="text" placeholder="e.g. Morning batch, Q1 2025" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('modal-addClass')">Cancel</button>
+        <button class="btn btn-primary" onclick="addClass()">Create Class</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD STUDENT -->
+  <div class="modal-overlay" id="modal-addStudent" onclick="overlayClose(event, 'modal-addStudent')">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Add Student</h2>
+        <button class="icon-btn" onclick="closeModal('modal-addStudent')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input id="newStudentName" type="text" placeholder="e.g. Ahmed Mohamed" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('modal-addStudent')">Cancel</button>
+        <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GIVE POINTS -->
+  <div class="modal-overlay" id="modal-givePoints" onclick="overlayClose(event, 'modal-givePoints')">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="givePointsTitle">Give Points</h2>
+        <button class="icon-btn" onclick="closeModal('modal-givePoints')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <label>Student</label>
+        <select id="pointsStudent"></select>
+      </div>
+      <div class="form-group">
+        <label>Points</label>
+        <div class="points-row">
+          <button class="quick-pts" onclick="setQuickPts(5)">+5</button>
+          <button class="quick-pts" onclick="setQuickPts(10)">+10</button>
+          <button class="quick-pts" onclick="setQuickPts(25)">+25</button>
+          <button class="quick-pts" onclick="setQuickPts(50)">+50</button>
+        </div>
+        <input id="pointsAmount" type="number" value="10" min="-9999" />
+      </div>
+      <div class="form-group">
+        <label>Reason <span class="optional">(optional)</span></label>
+        <textarea id="pointsReason" placeholder="e.g. Solved the challenge first! Great work."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('modal-givePoints')">Cancel</button>
+        <button class="btn btn-primary" onclick="givePoints()">Give Points</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: STUDENT DETAIL -->
+  <div class="modal-overlay" id="modal-studentDetail" onclick="overlayClose(event, 'modal-studentDetail')">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>Student Profile</h2>
+        <button class="icon-btn" onclick="closeModal('modal-studentDetail')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="studentDetailContent"></div>
+      <div class="modal-actions">
+        <button class="btn btn-danger btn-sm" onclick="removeStudent()">Remove Student</button>
+        <button class="btn btn-accent btn-sm" onclick="quickGivePoints()">Give Points</button>
+        <button class="btn btn-ghost" onclick="closeModal('modal-studentDetail')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
